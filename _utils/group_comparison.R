@@ -422,3 +422,85 @@ group_comparison_obj <- function(data, colname) {
   class(results) <- c("group_comparison_results", "list")
   return(results)
 }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 参考文献
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# ── 正态性检验 ───────────────────────────────────────────────────────────────
+# Shapiro, S. S., & Wilk, M. B. (1965). An analysis of variance test for
+#   normality (complete samples). Biometrika, 52(3/4), 591–611.
+#   doi:10.1093/biomet/52.3-4.591
+#   → Shapiro-Wilk 检验原文献。H0: 样本来自正态总体。p < α 拒绝正态性。
+#
+# ── 方差齐性检验 ─────────────────────────────────────────────────────────────
+# Levene, H. (1960). Robust tests for equality of variances. In I. Olkin (Ed.),
+#   Contributions to Probability and Statistics (pp. 278–292). Stanford
+#   University Press.
+#   → Levene 检验，对非正态较 Bartlett 检验稳健。H0: 各组方差相等。
+#
+# ── 单因素方差分析 (One-way ANOVA) ──────────────────────────────────────────
+# Fisher, R. A. (1925). Statistical Methods for Research Workers. Oliver & Boyd.
+#   → F 检验比较组间均方 (MS_between) 与组内均方 (MS_within)。
+#
+# ── η² (Eta Squared) ────────────────────────────────────────────────────────
+# Cohen, J. (1973). Eta-squared and partial eta-squared in fixed factor ANOVA
+#   designs. Educational and Psychological Measurement, 33(1), 107–112.
+#   doi:10.1177/001316447303300111
+#   公式: η² = SS_between / SS_total
+#   阈值: < 0.01 negligible, < 0.06 small, < 0.14 medium, ≥ 0.14 large
+#   → "η²" 与"偏 η²" 的区分见 Richardson (2011): Educational Research
+#     Review, 6(2), 135–147. doi:10.1016/j.edurev.2010.12.001
+#
+# ── Kruskal-Wallis 检验 ─────────────────────────────────────────────────────
+# Kruskal, W. H., & Wallis, W. A. (1952). Use of ranks in one-criterion
+#   variance analysis. Journal of the American Statistical Association,
+#   47(260), 583–621. doi:10.1080/01621459.1952.10483441
+#   → 单因素 ANOVA 的非参数替代。H0: 各组分布相同。
+#
+# ── ε² (Epsilon Squared) ────────────────────────────────────────────────────
+# Kelley, T. L. (1935). An unbiased correlation ratio measure. Proceedings of
+#   the National Academy of Sciences, 21(9), 554–559.
+#   公式: ε² = (H - (k - 1)) / (N - k)
+#   → Kruskal-Wallis 的偏差校正效应量。与 η²_H = H / (N - 1) 相比，ε² 在
+#     零假设下期望为 0，不依赖组数。代码中 max(0, ...) 避免负值。
+#   → 另见 Tomczak & Tomczak (2014): Trends in Sport Sciences, 21(1), 19–25.
+#
+# ── Tukey HSD ────────────────────────────────────────────────────────────────
+# Tukey, J. W. (1949). Comparing individual means in the analysis of variance.
+#   Biometrics, 5(2), 99–114. doi:10.2307/3001913
+#   → ANOVA 显著后的所有两两比较，控制 family-wise error rate。
+#
+# ── Bonferroni 校正 ─────────────────────────────────────────────────────────
+# Dunn, O. J. (1961). Multiple comparisons among means. Journal of the American
+#   Statistical Association, 56(293), 52–64. doi:10.1080/01621459.1961.10482090
+#   → p_adjusted = min(p × m, 1)，保守但通用。
+#
+# ── Dunn 检验 ────────────────────────────────────────────────────────────────
+# Dunn, O. J. (1964). Multiple comparisons using rank sums. Technometrics,
+#   6(3), 241–252. doi:10.1080/00401706.1964.10490181
+#   → Kruskal-Wallis 显著后的非参数两两比较，基于秩和的 Z 近似。
+#
+# ── Cohen's d（经典 pooled SD 版）────────────────────────────────────────────
+# Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences
+#   (2nd ed.). Lawrence Erlbaum Associates. ISBN: 978-0805802832
+#   公式: d = (M₁ - M₂) / s_pooled
+#         s_pooled = √(((n₁-1)s₁² + (n₂-1)s₂²) / (n₁+n₂-2))
+#   阈值: |d| < 0.2 negligible, < 0.5 small, < 0.8 medium, ≥ 0.8 large
+#   → 本书同时定义了 d, f, f², η² 及其解释阈值。
+#
+# ── Cohen's d → r 转换 ──────────────────────────────────────────────────────
+# Rosenthal, R. (1994). Parametric measures of effect size. In H. Cooper &
+#   L. V. Hedges (Eds.), The Handbook of Research Synthesis (pp. 231–244).
+#   Russell Sage Foundation.
+#   公式: r = d / √(d² + 4)
+#   → 当 n₁ = n₂ 时，r 等价于点双列相关系数。
+#
+# ── Dunn 检验 Z → r ─────────────────────────────────────────────────────────
+# Fritz, C. O., Morris, P. E., & Richler, J. J. (2012). Effect size estimates:
+#   current use, calculations, and interpretation. Journal of Experimental
+#   Psychology: General, 141(1), 2–18. doi:10.1037/a0024338
+#   公式: r = Z / √N（N = n₁ + n₂）
+#   阈值: |r| < 0.1 negligible, < 0.3 small, < 0.5 medium, ≥ 0.5 large
+#   → 本文全面综述了各类效应量的计算与解释。

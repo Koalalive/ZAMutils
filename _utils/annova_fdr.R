@@ -167,3 +167,83 @@ annova_FDR <- function(data, group_var, covariates = NULL, outcome_vars = NULL) 
 
   return(results_df)
 }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 参考文献
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# ── ANCOVA (协方差分析) ─────────────────────────────────────────────────────
+# Fisher, R. A. (1932). Statistical Methods for Research Workers (4th ed.).
+#   Oliver & Boyd.
+#   → ANCOVA 将连续协变量纳入线性模型，在控制协变量影响后比较调整均值。
+#     模型: Y = β₀ + β₁·Group + β₂·Cov₁ + ... + ε
+#     调整均值差 = 各组在协变量均值处的预测值之差。
+#
+# ── Type II Sum of Squares ──────────────────────────────────────────────────
+# Fox, J., & Weisberg, S. (2019). An R Companion to Applied Regression
+#   (3rd ed.). Sage. ISBN: 978-1544336473
+#   → car::Anova() 默认 Type II SS: 每个效应的 SS 在控制所有同阶或更低阶
+#     效应（但不控制更高阶交互）后计算。Type II 不依赖变量输入顺序，
+#     适合主效应检验。与 Type I (sequential) 不同，各行 SS 不可加。
+#
+# ── η² 与偏 η² ─────────────────────────────────────────────────────────────
+# Cohen, J. (1973). Eta-squared and partial eta-squared in fixed factor ANOVA
+#   designs. Educational and Psychological Measurement, 33(1), 107–112.
+#   doi:10.1177/001316447303300111
+#   η²         = SS_group / SS_total
+#   partial η² = SS_group / (SS_group + SS_residual)
+#   → 注意: Type II SS 下 SS_total 不是各行的算术和，因此 η² 可能不等于
+#     partial η²。ANCOVA 中通常报告 partial η²。
+#
+# Richardson, J. T. E. (2011). Eta squared and partial eta squared as measures
+#   of effect size in educational research. Educational Research Review,
+#   6(2), 135–147. doi:10.1016/j.edurev.2010.12.001
+#   → 综述了 η² / partial η² 的区别和报告建议。
+#
+# ── Cohen's f² ──────────────────────────────────────────────────────────────
+# Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences
+#   (2nd ed.). Lawrence Erlbaum Associates. ISBN: 978-0805802832
+#   公式: f² = R² / (1 - R²) = partial_η² / (1 - partial_η²)
+#   阈值: f² < 0.02 small, < 0.15 medium, ≥ 0.15 large
+#   → f² 用于 G*Power 等软件的样本量规划。在 ANCOVA 中表示分组变量
+#     相对于残差的独特解释力。
+#
+# ── Cohen's d（三种变体）────────────────────────────────────────────────────
+# ① d_raw — 经典 pooled SD 版:
+#   Cohen, J. (1988).同上.
+#   公式: d = (M₁ - M₂) / s_pooled
+#         s_pooled = √(((n₁-1)s₁² + (n₂-1)s₂²) / (n₁+n₂-2))
+#   → 不控制协变量，反映原始组间差异。与 ANCOVA 同时报告时，d_raw > d_ancova
+#     说明协变量解释了部分组间差异。
+#
+# ② d_ancova — ANCOVA 调整版:
+#   Borenstein, M., Hedges, L. V., Higgins, J. P. T., & Rothstein, H. R.
+#     (2009). Introduction to Meta-Analysis. Wiley. ISBN: 978-0470057247
+#     (第 4 章讨论了协变量调整后的标准化均值差)
+#   公式: d = (adjusted_M₁ - adjusted_M₂) / √MSE
+#   → √MSE = sigma(model)，即残差标准差。这是 ANCOVA 下推荐的效应量，
+#     等价于控制了协变量后的标准化均值差。
+#
+# ③ d_t — t 值反推:
+#   Rosenthal, R. (1994). Parametric measures of effect size. In H. Cooper &
+#     L. V. Hedges (Eds.), The Handbook of Research Synthesis (pp. 231–244).
+#     Russell Sage Foundation.
+#   公式: d = t × √(1/n₁ + 1/n₂)
+#   → 从 t 检验统计量反推 d。注意: ANCOVA 中的 t 已包含协变量信息，
+#     反推得到的 d_t 通常偏大，仅供与文献对比时参考。推荐使用 d_ancova。
+#
+# ── FDR (False Discovery Rate) ──────────────────────────────────────────────
+# Benjamini, Y., & Hochberg, Y. (1995). Controlling the false discovery rate:
+#   a practical and powerful approach to multiple testing. Journal of the
+#   Royal Statistical Society: Series B (Methodological), 57(1), 289–300.
+#   doi:10.1111/j.2517-6161.1995.tb02031.x
+#   → 对 t 检验 p 值和 F 检验 p 值分别进行 FDR 校正。
+#   FDR 比 Bonferroni 更不保守（检验效能更高），适合大规模多重比较。
+#
+# ── Hedges' g（偏差校正 d）──────────────────────────────────────────────────
+# Hedges, L. V. (1981). Distribution theory for Glass's estimator of effect
+#   size and related estimators. Journal of Educational Statistics, 6(2),
+#   107–128. doi:10.3102/10769986006002107
+#   公式: g = d × J(N-2)，其中 J(m) ≈ 1 - 3/(4m-1)
+#   → 小样本下 d 略微偏高，g 对其进行了偏差校正。n₁+n₂ ≥ 50 时 d ≈ g。
