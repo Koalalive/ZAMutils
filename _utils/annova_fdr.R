@@ -77,9 +77,9 @@ annova_FDR <- function(data, group_var, covariates = NULL, outcome_vars = NULL) 
       n_comp <- unname(group_n[comp_level])
 
       # ── Cohen's d ───────────────────────────────────────
-      # d = t * sqrt(1/n1 + 1/n2)，ANCOVA 下的近似
-      if (!is.na(t_val) && !is.na(n_ref) && !is.na(n_comp)) {
-        cohens_d <- t_val * sqrt(1 / n_ref + 1 / n_comp)
+      # ANCOVA 修正：调整均值差 / 残差 SD（控制协变量后的标准化效应）
+      if (!is.na(adj_mean_diff) && !is.na(residual_sd) && residual_sd > 0) {
+        cohens_d <- adj_mean_diff / residual_sd
       } else {
         cohens_d <- NA
       }
